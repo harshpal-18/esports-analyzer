@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#111827"/></linearGradient></defs>
+  <rect width="1600" height="500" fill="url(#g)"/>
+  <text x="90" y="290" font-family="Arial" font-size="150" font-weight="700" fill="#fff" opacity="0.16">CALL OF DUTY</text>
+</svg>

@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --game-color: #ef4444;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-poppins);
+  --color-e-bg: #07060b;
+  --color-e-panel: #13111b;
+  --color-e-card: #1a1526;
+  --color-e-accent: #ef4444;
+  --color-e-neon: #a855f7;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.2), transparent 33%),
+    radial-gradient(circle at 85% 5%, rgba(239, 68, 68, 0.18), transparent 35%);
+}
+
+body.light {
+  background-color: #f4f4fa;
+  color: #0f172a;
+  background-image: radial-gradient(circle at 20% 10%, rgba(168, 85, 247, 0.09), transparent 35%);
+}
+
+body.light .glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px);
+  border-radius: 1rem;
+}
+
+.neon-hover {
+  transition: all 0.25s ease;
+}
+
+.neon-hover:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--game-color) 45%, transparent),
+    0 0 24px color-mix(in srgb, var(--game-color) 28%, transparent);
+}
