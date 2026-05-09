@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎮 Esports Performance Analyzer
 
-## Getting Started
+A modern, real-time analytics dashboard for competitive gamers to track, analyze, and improve their in-game performance across multiple titles like BGMI and Call of Duty.
 
-First, run the development server:
+---
+
+## 🚀 Live Demo
+
+👉 (https://esports-analyzer.vercel.app/)
+
+---
+
+## 📊 Features
+
+* 🎯 Track match performance (kills, damage, rank, K/D, etc.)
+* 📈 Real-time analytics with charts (K/D trends, performance over time)
+* 🧠 Smart performance score calculation
+* 🎮 Multi-game support (BGMI, COD, more)
+* ☁️ Cloud sync using Firebase Firestore
+* 📱 Responsive and modern UI
+* 📄 Export analytics as PDF
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** Next.js 16, React
+* **Styling:** Tailwind CSS
+* **Charts:** Recharts
+* **Backend:** Firebase Firestore
+* **Deployment:** Vercel
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/esports-analyzer.git
+cd esports-analyzer
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+### 3. Create environment variables
+
+Create a `.env.local` file in the root:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+---
+
+### 4. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🔥 Firebase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Go to Firebase Console
+2. Create a project
+3. Enable Firestore Database
+4. Set rules (for development):
 
-## Learn More
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+⚠️ Note: These rules are open for development only.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📸 Screenshots
 
-## Deploy on Vercel
+<img width="1920" height="1080" alt="Screenshot (139)" src="https://github.com/user-attachments/assets/d1e47d52-77d0-4553-af11-69c98b8ea7f5" />
+<img width="1920" height="1080" alt="Screenshot (140)" src="https://github.com/user-attachments/assets/103d28f7-e12b-4eef-90ea-83facdbd3a6c" />
+<img width="1920" height="1080" alt="Screenshot (141)" src="https://github.com/user-attachments/assets/6096d065-ac59-4564-9a8b-cccf9482c037" />
+<img width="1920" height="1080" alt="Screenshot (142)" src="https://github.com/user-attachments/assets/cfeb8be9-cfc4-4285-afd5-bbf2700b1027" />
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📌 Future Improvements
+
+* 🔐 Firebase Authentication (Google Login)
+* 👥 Multi-user support
+* 🏆 Leaderboard system
+* 🤖 AI-based performance insights
+* 🎯 Advanced analytics dashboard
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repo
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+Harsh Pal
+GitHub: https://github.com/harshpal-18
+
+---
+
+## ⭐ Support
+
+If you like this project, please give it a ⭐ on GitHub!
