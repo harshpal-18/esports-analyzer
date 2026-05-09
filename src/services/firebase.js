@@ -1,7 +1,15 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-
-console.log("ENV CHECK:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
@@ -12,11 +20,38 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
 
-console.log("ENV API KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-console.log("FULL CONFIG:", firebaseConfig);
+export const hasFirebaseConfig = Boolean(
+  firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId
+);
 
-export const hasFirebaseConfig = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
-
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// ─── Auth helpers ───────────────────────────────────────────────────────────
+
+export function subscribeAuth(callback) {
+  return onAuthStateChanged(auth, callback);
+}
+
+export async function loginWithGoogle() {
+  return signInWithPopup(auth, googleProvider);
+}
+
+export async function loginWithEmail(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function registerWithEmail(email, password, displayName) {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(cred.user, { displayName });
+  }
+  return cred;
+}
+
+export async function logoutUser() {
+  return signOut(auth);
+}

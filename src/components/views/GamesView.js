@@ -1,69 +1,147 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { GAME_CONFIGS, GAME_LIST } from "@/games/gameConfig";
+import { GAME_CONFIGS, GAME_LIST, getGameConfig } from "@/games/gameConfig";
 import { usePerformanceStore } from "@/hooks/usePerformanceStore";
+import { useGameMetrics } from "@/hooks/useGameMetrics";
 import { buildSummary } from "@/utils/analytics";
+import { useMemo } from "react";
+import { getTier } from "@/utils/analytics";
 
 export default function GamesView() {
   const { selectedGame, setSelectedGame, matches } = usePerformanceStore();
-  const config = GAME_CONFIGS[selectedGame];
+
+  const gameSummaries = useMemo(() => {
+    return GAME_LIST.map((game) => {
+      const gm = matches.filter((m) => m.game === game);
+      const s = buildSummary(gm);
+      const tier = getTier(s.performanceScore);
+      return { game, config: GAME_CONFIGS[game], summary: s, tier };
+    });
+  }, [matches]);
 
   return (
-    <section className="space-y-4">
-      <article className="glass-card neon-hover p-4">
-        <h3 className="text-lg font-semibold">Supported Games Module</h3>
-        <p className="mt-1 text-sm text-slate-400">Dynamic fields and image identity per game configuration.</p>
-      </article>
+    <section className="space-y-5">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h3 className="text-xl font-bold text-white [font-family:var(--font-poppins)]">Game Profiles</h3>
+        <p className="text-sm text-slate-400 mt-0.5">Select a game to view and track its specific analytics</p>
+      </motion.div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {GAME_LIST.map((game) => {
-          const gameConfig = GAME_CONFIGS[game];
-          const gameSummary = buildSummary(matches.filter((m) => m.game === game));
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {gameSummaries.map(({ game, config, summary, tier }, i) => {
           const isSelected = selectedGame === game;
-
           return (
-            <button
+            <motion.button
               key={game}
               type="button"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07 }}
+              whileHover={{ y: -4, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedGame(game)}
-              className={`glass-card neon-hover group relative overflow-hidden p-4 text-left transition ${
-                isSelected ? "ring-1 ring-white/35" : ""
+              className={`relative overflow-hidden rounded-2xl border p-5 text-left transition-all ${
+                isSelected
+                  ? "border-opacity-60 shadow-lg"
+                  : "border-white/8 hover:border-white/16"
               }`}
-              style={{ boxShadow: `0 0 0 1px ${gameConfig.color}33, 0 0 30px ${gameConfig.color}22` }}
+              style={
+                isSelected
+                  ? {
+                      borderColor: config.color + "88",
+                      boxShadow: `0 0 30px ${config.color}25, 0 8px 32px rgba(0,0,0,0.4)`,
+                      background: `linear-gradient(135deg, ${config.color}10, rgba(255,255,255,0.03))`,
+                    }
+                  : { background: "rgba(255,255,255,0.03)" }
+              }
             >
-              <Image src={gameConfig.banner} alt={`${gameConfig.name} banner`} fill className="object-cover opacity-15 transition-opacity duration-300 group-hover:opacity-25" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black/80" />
+              {/* Banner background */}
+              <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                <Image src={config.banner} alt="" fill className="object-cover opacity-10" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/85" />
+              </div>
+
               <div className="relative z-10">
-                <div className="flex items-center gap-3">
-                  <Image src={gameConfig.logo} alt={`${gameConfig.name} logo`} width={40} height={40} className="h-10 w-10 object-contain" />
-                  <div>
-                    <p className="font-semibold">{gameConfig.name}</p>
-                    <p className="text-xs text-slate-300">{gameConfig.stats.length} tracked metrics</p>
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-xl"
+                      style={{ background: `${config.color}22`, border: `1.5px solid ${config.color}44` }}
+                    >
+                      <Image
+                        src={config.logo}
+                        alt={game}
+                        width={80}
+                        height={80}
+                        className="h-full w-full object-cover rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white">{config.name}</p>
+                      <p className="text-xs text-slate-400">{config.description}</p>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <span
+                      className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
+                      style={{ background: config.color + "30", color: config.color, border: `1px solid ${config.color}50` }}
+                    >
+                      Active
+                    </span>
+                  )}
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-black/30 p-2 text-center">
+                    <p className="text-xs font-bold text-white">{summary.totalMatches}</p>
+                    <p className="text-[10px] text-slate-500">Matches</p>
+                  </div>
+                  <div className="rounded-lg bg-black/30 p-2 text-center">
+                    <p className="text-xs font-bold" style={{ color: config.color }}>{summary.averageKd}</p>
+                    <p className="text-[10px] text-slate-500">K/D</p>
+                  </div>
+                  <div className="rounded-lg bg-black/30 p-2 text-center">
+                    <p className="text-xs font-bold text-white">{summary.winRate}%</p>
+                    <p className="text-[10px] text-slate-500">Win%</p>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                  <div className="rounded bg-black/35 p-2">Matches: {gameSummary.totalMatches}</div>
-                  <div className="rounded bg-black/35 p-2">K/D: {gameSummary.averageKd}</div>
-                  <div className="rounded bg-black/35 p-2">WR: {gameSummary.winRate}%</div>
+
+                {/* Tier */}
+                {summary.totalMatches > 0 && (
+                  <div className="mt-3 flex items-center justify-between">
+                    <span
+                      className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      style={{ background: tier.color + "20", color: tier.color, border: `1px solid ${tier.color}30` }}
+                    >
+                      {tier.emoji} {tier.label}
+                    </span>
+                    <span className="text-xs text-slate-500">Score: {summary.performanceScore}</span>
+                  </div>
+                )}
+
+                {/* Tracked stats */}
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {config.stats.map((s) => (
+                    <span
+                      key={s}
+                      className="rounded-md px-2 py-0.5 text-[10px] font-medium"
+                      style={{ background: `${config.color}12`, color: config.color }}
+                    >
+                      {config.labels[s]}
+                    </span>
+                  ))}
                 </div>
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>
-
-      <article className="glass-card neon-hover p-4">
-        <h4 className="font-semibold">{config.name} Tracked Fields</h4>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {config.stats.map((stat) => (
-            <div key={stat} className="rounded-lg bg-black/25 p-3">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Tracked Field</p>
-              <p className="mt-1 font-semibold">{config.labels[stat]}</p>
-            </div>
-          ))}
-        </div>
-      </article>
     </section>
   );
 }

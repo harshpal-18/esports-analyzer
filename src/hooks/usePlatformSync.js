@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePerformanceStore } from "@/hooks/usePerformanceStore";
-import { hasFirebaseConfig } from "@/services/firebase";
+import { subscribeAuth } from "@/services/firebase";
 import {
   createMatch,
   saveUserPreferences,
@@ -12,119 +12,149 @@ import {
   upsertLeaderboardProfile,
 } from "@/services/firestore";
 import { buildSummary } from "@/utils/analytics";
+import { DEMO_MATCHES, DEMO_LEADERBOARD } from "@/utils/demoData";
 
-// 🔥 MAIN HOOK
 export function usePlatformSync() {
   const setUser = usePerformanceStore((s) => s.setUser);
+  const setAuthLoading = usePerformanceStore((s) => s.setAuthLoading);
   const setMatches = usePerformanceStore((s) => s.setMatches);
   const setLoadingMatches = usePerformanceStore((s) => s.setLoadingMatches);
   const setPreferences = usePerformanceStore((s) => s.setPreferences);
   const setLeaderboard = usePerformanceStore((s) => s.setLeaderboard);
+  const addNotification = usePerformanceStore((s) => s.addNotification);
 
   useEffect(() => {
-    if (!hasFirebaseConfig) {
-      setLoadingMatches(false);
+    let unsubMatches = null;
+    let unsubPrefs = null;
+
+    // ── Demo mode shortcut ────────────────────────────────────────────────
+    const storedDemo = typeof window !== "undefined" && sessionStorage.getItem("statforge_demo");
+    if (storedDemo) {
+      const demoUser = JSON.parse(storedDemo);
+      setUser(demoUser);
+      setAuthLoading(false);
+      setMatches(DEMO_MATCHES);
+      setLeaderboard(DEMO_LEADERBOARD);
       return;
     }
+    // ─────────────────────────────────────────────────────────────────────
 
-    const user = { uid: "local-user" }; // fake user
-    setUser(user);
+    const unsubLeaderboard = subscribeLeaderboard((rows) => setLeaderboard(rows));
 
-    setLoadingMatches(true);
+    const unsubAuth = subscribeAuth((user) => {
+      setUser(user);
+      setAuthLoading(false);
 
-    const unsubMatches = subscribeMatches(user.uid, (rows) => {
-      setMatches(rows);
+      // Clean up previous subscriptions when user changes
+      if (unsubMatches) { unsubMatches(); unsubMatches = null; }
+      if (unsubPrefs) { unsubPrefs(); unsubPrefs = null; }
 
-      const summary = buildSummary(rows);
+      if (!user) {
+        setMatches([]);
+        return;
+      }
 
-      upsertLeaderboardProfile(user.uid, {
-        username: `Player-${user.uid.slice(0, 5)}`,
-        score: summary.performanceScore,
-        winRate: summary.winRate,
-        averageKd: summary.averageKd,
-      }).catch(() => {});
-    });
+      setLoadingMatches(true);
 
-    const unsubPrefs = subscribeUserPreferences(user.uid, (prefs) => {
-      if (prefs) setPreferences(prefs);
-    });
+      unsubMatches = subscribeMatches(user.uid, (rows) => {
+        setMatches(rows);
+        const summary = buildSummary(rows);
+        upsertLeaderboardProfile(user.uid, {
+          username: user.displayName || user.email?.split("@")[0] || `Player-${user.uid.slice(0, 5)}`,
+          avatar: user.photoURL || null,
+          email: user.email,
+          score: summary.performanceScore,
+          winRate: summary.winRate,
+          averageKd: summary.averageKd,
+          totalMatches: summary.totalMatches,
+        }).catch(() => {});
+      });
 
-    const unsubLeaderboard = subscribeLeaderboard((rows) => {
-      setLeaderboard(rows);
+      unsubPrefs = subscribeUserPreferences(user.uid, (prefs) => {
+        if (prefs) setPreferences(prefs);
+      });
     });
 
     return () => {
+      unsubAuth && unsubAuth();
       unsubMatches && unsubMatches();
       unsubPrefs && unsubPrefs();
       unsubLeaderboard && unsubLeaderboard();
     };
   }, [
-    setLeaderboard,
-    setLoadingMatches,
-    setMatches,
-    setPreferences,
     setUser,
+    setAuthLoading,
+    setMatches,
+    setLoadingMatches,
+    setPreferences,
+    setLeaderboard,
+    addNotification,
   ]);
 }
-
-//////////////////////////////////////////////////////////////////
-// 🔥 FIXED SUBMIT MATCH (NO STUCK "Saving...")
-//////////////////////////////////////////////////////////////////
 
 export async function submitMatch(payload) {
   const store = usePerformanceStore.getState();
 
   if (!store.user) {
-    store.setMatchSubmitMessage("Login required.");
+    store.setMatchSubmitMessage("Please sign in to save matches.");
     return false;
   }
 
   store.setSubmittingMatch(true);
   store.setMatchSubmitMessage("");
 
-  try {
-    console.log("Saving match...", payload);
+  // ── Demo mode: save locally ──────────────────────────────────────────────
+  if (store.user.isDemo) {
+    await new Promise((r) => setTimeout(r, 600)); // simulate latency
+    const newMatch = { id: `demo-${Date.now()}`, ...payload };
+    const current = store.matches;
+    store.setMatches([newMatch, ...current]);
+    store.setMatchSubmitMessage("✅ Match saved (Demo Mode)!");
+    store.addNotification({ type: "success", title: "Match Saved", message: `${payload.game} match recorded in demo.` });
+    store.setSubmittingMatch(false);
+    return true;
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
-    // 🔥 Timeout protection
+  try {
     await Promise.race([
       createMatch(store.user.uid, payload),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), 5000)
+        setTimeout(() => reject(new Error("Timeout")), 8000)
       ),
     ]);
 
-    store.setMatchSubmitMessage("Match saved successfully.");
+    store.setMatchSubmitMessage("✅ Match saved successfully!");
+    store.addNotification({ type: "success", title: "Match Saved", message: `${payload.game} match recorded.` });
     return true;
-
   } catch (err) {
-    console.error("Error saving match:", err);
-    store.setMatchSubmitMessage("Failed to save match.");
+    store.setMatchSubmitMessage("❌ Failed to save match. Try again.");
     return false;
-
   } finally {
-    store.setSubmittingMatch(false); // ✅ ALWAYS RESET
+    store.setSubmittingMatch(false);
   }
 }
 
-//////////////////////////////////////////////////////////////////
-// 🔥 SAVE PREFERENCES
-//////////////////////////////////////////////////////////////////
-
 export async function savePreferences(payload) {
   const store = usePerformanceStore.getState();
-
   if (!store.user) {
-    store.setPrefsSaveMessage("Login required.");
+    store.setPrefsSaveMessage("Please sign in to save preferences.");
     return false;
   }
-
+  // ── Demo mode: save locally ──────────────────────────────────────────────
+  if (store.user.isDemo) {
+    await new Promise((r) => setTimeout(r, 400));
+    store.setPreferences(payload);
+    store.setPrefsSaveMessage("✅ Preferences saved (Demo Mode)!");
+    return true;
+  }
+  // ─────────────────────────────────────────────────────────────────────────
   try {
     await saveUserPreferences(store.user.uid, payload);
-    store.setPrefsSaveMessage("Preferences saved.");
+    store.setPrefsSaveMessage("✅ Preferences saved!");
     return true;
-
   } catch {
-    store.setPrefsSaveMessage("Failed to save preferences.");
+    store.setPrefsSaveMessage("❌ Failed to save preferences.");
     return false;
   }
 }

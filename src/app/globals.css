@@ -1,54 +1,236 @@
 @import "tailwindcss";
 
+/* ── CSS Custom Properties ───────────────────────────────────────────────── */
 :root {
   --game-color: #ef4444;
+  --game-color-dim: rgba(239, 68, 68, 0.2);
+  --sidebar-w: 260px;
 }
 
 @theme inline {
   --font-sans: var(--font-inter);
   --font-heading: var(--font-poppins);
   --color-e-bg: #07060b;
-  --color-e-panel: #13111b;
-  --color-e-card: #1a1526;
+  --color-e-panel: #100e1a;
+  --color-e-card: #17142a;
+  --color-e-border: rgba(255, 255, 255, 0.08);
   --color-e-accent: #ef4444;
   --color-e-neon: #a855f7;
+  --color-e-cyan: #22d3ee;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: #07060b;
   background-image:
-    radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.2), transparent 33%),
-    radial-gradient(circle at 85% 5%, rgba(239, 68, 68, 0.18), transparent 35%);
+    radial-gradient(ellipse at 10% 0%, rgba(168, 85, 247, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 90% 5%, rgba(239, 68, 68, 0.14) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 50%);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-body.light {
-  background-color: #f4f4fa;
-  color: #0f172a;
-  background-image: radial-gradient(circle at 20% 10%, rgba(168, 85, 247, 0.09), transparent 35%);
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.7); }
 
-body.light .glass-card {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-}
+/* Selection */
+::selection { background: rgba(168, 85, 247, 0.35); color: white; }
 
-* {
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
+/* ── Glass Card ──────────────────────────────────────────────────────────── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.glass-card-hover:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Neon Hover ──────────────────────────────────────────────────────────── */
 .neon-hover {
-  transition: all 0.25s ease;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
 }
-
 .neon-hover:hover {
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--game-color) 45%, transparent),
-    0 0 24px color-mix(in srgb, var(--game-color) 28%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--game-color) 40%, transparent),
+    0 0 28px color-mix(in srgb, var(--game-color) 22%, transparent),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
 }
+
+/* ── Glow Effects ────────────────────────────────────────────────────────── */
+.glow-purple {
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.35), 0 0 60px rgba(168, 85, 247, 0.15);
+}
+.glow-red {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.35), 0 0 60px rgba(239, 68, 68, 0.15);
+}
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.35), 0 0 60px rgba(34, 211, 238, 0.15);
+}
+.glow-game {
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--game-color) 50%, transparent),
+    0 0 40px color-mix(in srgb, var(--game-color) 20%, transparent);
+}
+
+/* ── Text Effects ────────────────────────────────────────────────────────── */
+.text-gradient-purple {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-game {
+  background: linear-gradient(135deg, var(--game-color), white);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-neon {
+  background: linear-gradient(135deg, #22d3ee, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animated BG Grid ────────────────────────────────────────────────────── */
+.bg-grid {
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Loading Skeleton ────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+@keyframes skeleton-wave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Pulse Ring ──────────────────────────────────────────────────────────── */
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Animated Border ─────────────────────────────────────────────────────── */
+.animated-border {
+  position: relative;
+  overflow: hidden;
+}
+.animated-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--game-color), transparent, #a855f7);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── Stat Card Colors ────────────────────────────────────────────────────── */
+.stat-positive { color: #4ade80; }
+.stat-warning  { color: #fbbf24; }
+.stat-danger   { color: #f87171; }
+.stat-neutral  { color: #94a3b8; }
+
+/* ── Button Variants ─────────────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #6d28d9, #9333ea);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  transform: translateY(-1px);
+}
+.btn-game {
+  background: color-mix(in srgb, var(--game-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--game-color) 40%, transparent);
+  color: var(--game-color);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s ease;
+}
+.btn-game:hover {
+  background: color-mix(in srgb, var(--game-color) 25%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--game-color) 30%, transparent);
+}
+
+/* ── Recharts Tooltip Override ───────────────────────────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(16, 14, 26, 0.95) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  border-radius: 0.75rem !important;
+  backdrop-filter: blur(10px) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Light mode (unused but kept for future) ─────────────────────────────── */
+body.light {
+  background-color: #f0f0fa;
+  color: #0f172a;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+.anim-fade-up  { animation: fadeUp 0.5s ease both; }
+.anim-fade-in  { animation: fadeIn 0.4s ease both; }
+.anim-scale-in { animation: scaleIn 0.4s ease both; }
+.anim-float    { animation: float 3s ease-in-out infinite; }
